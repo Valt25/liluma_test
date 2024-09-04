@@ -8,7 +8,7 @@ from bot.common.enums import CompanyOptions
 from bot.db.connection import ConnectionCache
 from bot.services.companies import get_company_data
 from bot.services.plot import get_plot
-from bot.services.user import get_latest_message_id, update_latest_message_id
+from bot.services.user import get_latest_message_id, set_last_message_to_null, update_latest_message_id
 
 
 async def delete_messages_with_stale_companies(sheet_ids: Set[str]):
@@ -34,23 +34,25 @@ async def update_message_with_latest_data(company_name, company_option, bot, cha
 async def update_all_presented_graphics():
     conn = ConnectionCache.get_connection()
     res = await conn.fetch('''SELECT user_id, graphic_message_id, selected_company_option, title FROM chats JOIN companies ON chats.selected_company_id=companies.sheet_id WHERE graphic_message_id IS NOT NULL AND selected_company_option IS NOT NULL;''')
-    first_group = []
-    second_group = []
+    await_list = []
 
     async with Bot(settings.TOKEN) as bot:
         for r in res:
             company_data = await get_company_data(r['title'], CompanyOptions(r['selected_company_option']))
             in_memory_media =  await get_plot(company_data, r['title'], CompanyOptions(r['selected_company_option']))
-            await bot.delete_message(
-                chat_id=r['user_id'],
-                message_id=r['graphic_message_id'],
-            )
-            first_group.append(asyncio.create_task(bot.send_photo(
+            try:
+                await bot.delete_message(
+                    chat_id=r['user_id'],
+                    message_id=r['graphic_message_id'],
+                )
+            except:
+                await set_last_message_to_null(r['user_id'])
+            await_list.append(asyncio.create_task(bot.send_photo(
                 chat_id=r['user_id'],
                 photo=in_memory_media,
                 caption=texts.COMPANY_DATA_PRESENTATION_TEXT,
             )))
             
-        new_messages = await asyncio.gather(*first_group)
+        new_messages = await asyncio.gather(*await_list)
         for new_message in new_messages:
             await update_latest_message_id(new_message.from_user.id, new_message.message_id)

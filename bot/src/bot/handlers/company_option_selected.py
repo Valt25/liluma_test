@@ -9,7 +9,7 @@ from bot.db.connection import wrap_with_db_connection
 from bot.services.companies import get_company_data
 from bot.services.plot import get_plot
 from bot import texts
-from bot.services.user import get_latest_message_id, update_latest_message
+from bot.services.user import get_latest_message_id, set_last_message_to_null, update_latest_message
     
 
 async def conditional_delete_message(bot, chat_id):
@@ -34,7 +34,10 @@ async def company_option_selected(update: Update, context: ContextTypes.DEFAULT_
             caption=texts.COMPANY_DATA_PRESENTATION_TEXT,
     ))
     if last_message_id is not None:
-        await_list.append(context.bot.delete_message(update.effective_chat.id, last_message_id))
+        try:
+            await context.bot.delete_message(update.effective_chat.id, last_message_id)
+        except:
+            await set_last_message_to_null(r['user_id'])
     await_list.append(query.answer())
     res = await asyncio.gather(*await_list)
     await update_latest_message(update.effective_chat.id, res[0].message_id, company_name, option_selected)

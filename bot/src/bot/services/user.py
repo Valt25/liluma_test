@@ -35,3 +35,7 @@ async def get_latest_message_id(user_id):
     if res is None:
         return None
     return int(res['graphic_message_id'])
+
+async def set_last_message_to_null(user_id):
+    conn = ConnectionCache.get_connection()
+    await conn.execute("UPDATE chats SET graphic_message_id=NULL, selected_company_id=NULL,selected_company_option=NULL WHERE user_id=user_id")
