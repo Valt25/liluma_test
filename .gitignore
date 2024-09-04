@@ -1,0 +1,4 @@
+venv
+bot/src/bot/__pycache__
+bot/.env
+*.pyc

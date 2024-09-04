@@ -1,0 +1,31 @@
+services:
+  bot:
+    image: local/liluma_test_bot:latest
+    env_file:
+      - ./bot/.env
+    volumes:
+      - ./bot/src:/app
+    depends_on:
+      - postgres
+
+  updater:
+    image: local/liluma_test_updater:latest
+    env_file:
+      - ./bot/.env
+    volumes:
+      - ./bot/src:/app
+    depends_on:
+      - postgres
+      - bot
+    restart: always
+     
+  postgres:
+    image: postgres:16
+#   opened ports for local debug
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: liluma_user
+      POSTGRES_DB: liluma_password
+

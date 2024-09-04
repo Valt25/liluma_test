@@ -1,0 +1,12 @@
+{
+    "terminal.integrated.env.osx": {
+      "PYTHONPATH": "${workspaceFolder}/bot/src"
+    },
+    "terminal.integrated.env.linux": {
+      "PYTHONPATH": "${workspaceFolder}/bot/src"
+    },
+    "terminal.integrated.env.windows": {
+      "PYTHONPATH": "${workspaceFolder}/bot/src"
+    },
+    "python.envFile": "${workspaceFolder}/.env"
+  }
